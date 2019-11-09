@@ -1,4 +1,12 @@
 <?php
+/*
+ * reads EXIF data from a jpg
+ *
+ * usage:  readexif.php?file=[filename]
+ * 
+ * (c) 2019, rdaforno
+ */
+
 define(NEWLINE, "<br />\n");
 
 function println($str) {
