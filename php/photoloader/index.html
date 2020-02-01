@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <style>
+    body { font-family: arial,helvetica; font-size: 12px; color: #555; }
+    img { margin-top: 5px; margin-bottom: 5px; }
+  </style>
+  <script type="text/javascript" src="jquery-3.4.1.min.js"></script>	<!-- include jQuery library -->
+  <script type="text/javascript">
+    //<!--
+    function loadCrop(elem, elem2) {
+      var w = elem.width;
+      var h = elem.height;
+      var x = event.clientX - elem.offsetLeft + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
+      var y = event.clientY - elem.offsetTop + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
+      x = (parseFloat(x) / parseFloat(w)).toFixed(3);
+      y = (parseFloat(y) / parseFloat(h)).toFixed(3);
+      elem2.src = "img.php?f=sample&x=" + x + "&y=" + y + "&w=300&h=300";
+    }
+    
+    function getFileInfo(filename) {
+      $.get('img.php', "i=" + filename, function(data) {
+        $('#img1info').text(data);
+      });
+     }
+     
+    $(document).ready(function() {
+      getFileInfo('sample');
+    });
+     
+    //-->
+  </script>
+</head>
+<body>
+  <br />Click to select the crop position:<br /><br />
+  <img id="img1" src="img.php?f=sample&s=0.2" onclick="loadCrop(this, img1crop)" /><br />
+  <div id="img1info"></div><br />
+  <img id="img1crop" src="img.php?f=sample&x=0&y=0&w=300&h=300" /><br />
+</body>
+</html>
