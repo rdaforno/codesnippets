@@ -1,0 +1,81 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="description" content="share your files" />
+  <meta http-equiv="Content-Script-Type" content="text/javascript" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta http-equiv="cache-control" content="no-cache" />
+  <meta http-equiv="pragma" content="no-cache" />
+  <meta http-equiv="content-language" content="en" />
+  <title>-- File Dropzone --</title>
+  <style type="text/css">
+    body  { font: 12px verdana,arial,helvetica,sans-serif; color: #606060; text-align: left; background-color: #ffffff; }
+    input[type=file] { padding: 60px; width: 100%; vertical-align: middle; text-align: center; color: #fff; opacity: 0.0; cursor: pointer; }
+    input[type=file]:focus { outline-width: 0; }
+    #container { position: relative; width: 90%; text-align: left; }
+    #fileselect { position: relative; width: 100%; max-width: 1000px; float: left; height: 60px; overflow: hidden; margin-top: 10px; margin-bottom: 10px; border: 2px dashed #606060; vertical-align: top; text-align: center; }
+    #fileselect:hover { background-color: #f4f4f4; }
+    #fileselect[drop-active=true] { background-color: #fffcf4; }
+    #fileselecttext { position: absolute; top: 40%; width: 100%; text-align: center; }
+  </style>
+  <script type="text/javascript" src="jquery-3.4.1.min.js"></script>  <!-- include jQuery library -->
+  <script type="text/javascript">
+  <!--
+    var filenames = [];
+    
+    // process the selected files
+    function processFiles() {
+      var filelist = $('#fileinput').prop('files');
+      for (file of filelist) {
+        // check file type (e.g. only allow images)
+        if (!file.type.match('image.*')) {
+          alert("file " + file.name + " is not an image");
+          continue;
+        }
+        // check for duplicates
+        if (filenames.indexOf(file.name) >= 0) {
+          alert("file " + file.name + " already exists");
+          continue;
+        }
+        // add to list
+        filenames.push(file.name);
+      }
+      $('#fileselecttext').text(filenames.join(", "));
+      $('#fileinput').val("");  // reset file input field
+    }
+    
+    // register global event listeners to prevent accidental drag select and drag&drop
+    window.ondragstart = function() { event.preventDefault(); }
+    window.ondragover = function(e) {
+      if (e.target.id != "fileinput") {
+        e.preventDefault();
+        e.dataTransfer.effectAllowed = "none";
+        e.dataTransfer.dropEffect = "none";
+      }
+    };
+    window.ondrop = function(e) {
+      if (e.target.id != "fileinput") {
+        e.preventDefault();
+        e.dataTransfer.effectAllowed = "none";
+        e.dataTransfer.dropEffect = "none";
+      }
+    };
+  //-->
+  </script>
+</head>
+<body>
+  <center>
+  <div id="container"> 
+    <br />
+    <div id="fileselect" ondragover="$(this).attr('drop-active', true);" ondragleave="$(this).removeAttr('drop-active');" ondrop="$(this).removeAttr('drop-active'); console.log(event.dataTransfer.files);">
+      <div id="fileselecttext">drop image files here</div>
+      <input type="file" multiple name="files[]" id="fileinput" accept=".jpg" onchange="processFiles();" />
+    </div>
+    <br />
+  </div>
+  </center>
+</body>
+</html>
