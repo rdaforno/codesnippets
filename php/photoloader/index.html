@@ -13,8 +13,8 @@
     function loadCrop(elem, elem2) {
       var w = elem.width;
       var h = elem.height;
-      var x = event.clientX - elem.offsetLeft + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
-      var y = event.clientY - elem.offsetTop + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
+      var x = event.clientX - elem.offsetLeft - elem.offsetParent.offsetLeft + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
+      var y = event.clientY - elem.offsetTop - elem.offsetParent.offsetTop + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
       x = (parseFloat(x) / parseFloat(w)).toFixed(3);
       y = (parseFloat(y) / parseFloat(h)).toFixed(3);
       elem2.src = "img.php?f=sample&x=" + x + "&y=" + y + "&w=300&h=300";
