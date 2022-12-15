@@ -16,14 +16,14 @@ from glob import glob
 debug = False
 
 if len(sys.argv) < 2:
-  print "not enough arguments provided\r\nusage:\t" + sys.argv[0] + " [dir or file1] [file2] ..."
+  print("not enough arguments provided\r\nusage:\t" + sys.argv[0] + " [dir or file1] [file2] ...")
   sys.exit()
 
 filelist = sys.argv[1:]
 if os.path.isdir(sys.argv[1]):
   filelist = [y for x in os.walk(sys.argv[1]) for y in glob(os.path.join(x[0], '*.c'))]
   filelist += [y for x in os.walk(sys.argv[1]) for y in glob(os.path.join(x[0], '*.h'))]
-  print " ".join(filelist)
+  #print("\n".join(filelist))
 
 commentBegin = re.compile(r"\/\*.*")
 commentEnd = re.compile(r".*\*\/")
@@ -36,10 +36,13 @@ skip    = False
 
 for filename in filelist:
   if not os.path.isfile(filename):
-    print "file '" + filename + "' skipped"
+    print("file '" + filename + "' skipped")
     continue
   linecntfile = 0
-  content = [line for line in open(filename, 'r')]
+  try:
+    content = [line for line in open(filename, 'r')]
+  except UnicodeDecodeError:
+    print("file '" + filename + "' contains invalid UTF-8 values")
   for line in content:
     if skip:
       # look for end of multiline comment
@@ -64,10 +67,10 @@ for filename in filelist:
         output += line + '\n'
 
   if debug:
-    print output
-  print "lines of code in '" + sys.argv[1] + "': " + str(linecntfile)
+    print(output)
+  print("lines of code in '" + filename + "': " + str(linecntfile))
   linecnt = linecnt + linecntfile
   filecnt = filecnt + 1
 
-print "total lines of code in all " + str(filecnt) + " files: " + sys.argv[1] + "': " + str(linecnt)
+print("total lines of code in all " + str(filecnt) + " files: " + sys.argv[1] + "': " + str(linecnt))
 
