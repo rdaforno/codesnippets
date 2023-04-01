@@ -67,7 +67,7 @@ class ChecksumCatalogue:
                 if line.strip() == "":
                     continue                
                 parts = line.strip().split(':', 3)
-                if len(parts) < 2:
+                if len(parts) < 3:
                     continue
                 self._catalogue[parts[0]] = (int(parts[1]), parts[2])
         self._changed = False
@@ -128,7 +128,7 @@ class ChecksumCatalogue:
 
     def check(self, save=True):
         aborted = False
-        if self._catalogue is None:
+        if not self._catalogue:
             return False
         print("updating catalogue %s ..." % (self._filename))
         timedelta = self.maxage_days * 86400
