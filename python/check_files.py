@@ -14,10 +14,10 @@ update_filelist = True
 
 class ChecksumCatalogue:
     
-    ignore_folders = ["@eaDir"]     # ignore (sub-)folders with these names
-    ignore_fileext = []             # file with these extensions will be skipped
-    checksum_tool  = "md5sum"       # which tool to use to calculate the checksum
-    maxage_days    = 100            # how old an entry may be before updating it
+    ignore_folders = ["@eaDir", "#recycle"]   # ignore (sub-)folders with these names
+    ignore_fileext = []                       # file with these extensions will be skipped
+    checksum_tool  = "md5sum"                 # which tool to use to calculate the checksum
+    maxage_days    = 100                      # how old an entry may be before updating it
     
     def __init__(self, path):
         if not os.path.exists(path):
@@ -101,7 +101,7 @@ class ChecksumCatalogue:
                 if not ignore:
                     for name in files:
                         if os.path.splitext(name)[1] not in self.ignore_fileext:
-                            catalogue[os.path.join(root, name)] = (0,0)
+                            catalogue[os.path.join(root, name)] = (0, "0")
         except KeyboardInterrupt:
             sys.stdout.write("\b\b")
             return None
@@ -115,13 +115,13 @@ class ChecksumCatalogue:
         for key in new_catalogue:
             if key not in self._catalogue:
                 print("new file added: %s" % key)
-                self._catalogue[key] = (0,0)
+                self._catalogue[key] = (0, "0")
                 self._changed = True
         # remove deleted files
         for key in self._catalogue:
             if key not in new_catalogue:
                 print("file removed: %s" % key)
-                self._catalogue[key] = (-1,0)   # mark as invalid
+                self._catalogue[key] = (-1, "0")   # mark as invalid
                 self._changed = True
         if self._changed and save:
             self.save()
@@ -141,10 +141,10 @@ class ChecksumCatalogue:
                 if timestamp < 0:
                     continue
                 if time.time() - timestamp > timedelta:
-                    print("[ {:6.2f}% ] calculating checksum for {} ...".format(progress * 100 / cat_size, item))
+                    print("[ {:6.2f}% ] calculating checksum of {} ...".format(progress * 100 / cat_size, item))
                     new_checksum = self.calc_checksum(item)
                     if checksum != "0" and checksum != new_checksum:
-                        print("WARNING: checksum for file %s has changed" % (item))
+                        print("WARNING: checksum of file %s has changed (old: %s, new: %s)" % (item, checksum, new_checksum))
                     else:
                         self._catalogue[item] = (int(time.time()), new_checksum)
                         self._changed = True
