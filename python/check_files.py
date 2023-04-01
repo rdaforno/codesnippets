@@ -152,8 +152,9 @@ class ChecksumCatalogue:
                         self._catalogue[item] = (int(time.time()), new_checksum)
                         self._changed = True
         except KeyboardInterrupt:
-            print("\b\b")
+            sys.stdout.write("\b\b")
             aborted = True
+        sys.stdout.write("\n")
         if self._changed and save:
             self.save()
         return not aborted
