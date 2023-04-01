@@ -22,7 +22,7 @@ class ChecksumCatalogue:
     def __init__(self, path):
         if not os.path.exists(path):
             print("invalid path " + path)
-        self._path      = path;
+        self._path      = path
         self._filename  = path.replace('/', '_').strip() + "_checksums"
         self._catalogue = {}
         self._changed   = False
@@ -131,6 +131,7 @@ class ChecksumCatalogue:
         if not self._catalogue:
             return False
         print("updating catalogue %s ..." % (self._filename))
+        sys.stdout.write("           ")
         timedelta = self.maxage_days * 86400
         try:
             cat_size = len(self._catalogue)
@@ -140,16 +141,18 @@ class ChecksumCatalogue:
                 (timestamp, checksum) = self._catalogue[item]
                 if timestamp < 0:
                     continue
+                sys.stdout.write("\b\b\b\b\b\b\b\b\b\b\b[ {:6.2f}% ]".format(progress * 100 / cat_size))
+                sys.stdout.flush()
                 if time.time() - timestamp > timedelta:
-                    print("[ {:6.2f}% ] calculating checksum of {} ...".format(progress * 100 / cat_size, item))
+                    #print("[ {:6.2f}% ] calculating checksum of {} ...".format(progress * 100 / cat_size, item))
                     new_checksum = self.calc_checksum(item)
                     if checksum != "0" and checksum != new_checksum:
-                        print("WARNING: checksum of file %s has changed (old: %s, new: %s)" % (item, checksum, new_checksum))
+                        print("\nWARNING: checksum of file %s has changed (old: %s, new: %s)" % (item, checksum, new_checksum))
                     else:
                         self._catalogue[item] = (int(time.time()), new_checksum)
                         self._changed = True
         except KeyboardInterrupt:
-            sys.stdout.write("\b\b")
+            print("\b\b")
             aborted = True
         if self._changed and save:
             self.save()
