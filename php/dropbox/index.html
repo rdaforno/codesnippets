@@ -10,10 +10,10 @@
   <meta http-equiv="cache-control" content="no-cache" />
   <meta http-equiv="pragma" content="no-cache" />
   <meta http-equiv="content-language" content="de" />
-  <title>-- kc dropbox --</title>
+  <title>-- dropbox --</title>
   <link href="dropboxdata/style.css" rel="stylesheet" type="text/css" />
   <link rel="icon" type="image/vnd.microsoft.icon" href="dropboxdata/favicon.ico">
-  <script type="text/javascript" src="dropboxdata/jquery-3.2.1.min.js"></script>  <!-- include jQuery library -->
+  <script type="text/javascript" src="dropboxdata/jquery-3.4.1.min.js"></script>  <!-- include jQuery library -->
   <script type="text/javascript">
   <!--
     var currdir = "";
@@ -26,7 +26,7 @@
           $("#loginbutton").fadeIn();
         } else {
           $("#loginform").slideUp();
-          $("#status").html("logged in as " + answer.user + " (<a href='#' onclick=\"logout(); return false\">logout</a>)");
+          $("#loginstatus").html("logged in as " + answer.user + " (<a href='#' onclick=\"logout(); return false\">logout</a>)");
           listdir(currdir);
           $("#fileupload").slideDown();
         }
@@ -37,10 +37,10 @@
       $.post('dropbox.php', "action=login&user=" + user + "&pw=" + pw, function(data) {
         var answer = jQuery.parseJSON(data);
         if (answer.res == 0) {
-          $("#status").html(answer.msg);
+          $("#serverresponse").html(answer.msg);
         } else {
           $("#loginform").slideUp();
-          $("#status").html("logged in as " + answer.user + " (<a href='#' onclick=\"logout(); return false\">logout</a>)");
+          $("#loginstatus").html("logged in as " + answer.user + " (<a href='#' onclick=\"logout(); return false\">logout</a>)");
           listdir(answer.home);
           $("#fileupload").slideDown();
         }
@@ -51,9 +51,10 @@
       $.post('dropbox.php', "action=logout", function(data) {
         var answer = jQuery.parseJSON(data);
         if (answer.res == 0) {
-          $("#status").html(answer.msg);
+          $("#serverresponse").html(answer.msg);
         } else {
-          $("#status").html("");
+          $("#loginstatus").html("");
+          $("#serverresponse").html("");
           $("#filelist").html("");
           $("#pw").val("");
           $("#fileupload").slideUp();
@@ -83,31 +84,20 @@
         }
       }
       // get the list of subdirectories
-      $.post('dropbox.php', "action=ls&dir=" + currdir + "&type=dir", function(data) {
+      $.post('dropbox.php', "action=ls&dir=" + currdir, function(data) {
         var answer = jQuery.parseJSON(data);
         if (answer.res == 0) {
-          $("#status").html(answer.msg);
+          $("#serverresponse").html(answer.msg);
         } else {
-          var content = "<br />directory '" + currdir + "':<br /><br />";
+          var content = "<br />";
+          for (i = 0; i < answer.dirs.length; i++) {
+            content += "<div class='listentry'><img src='dropboxdata/folder.png' title='folder' height=16px /> &nbsp; <a target='new' href='#' onclick=\"listdir('" + answer.dirs[i] + "'); return false\" >" + answer.dirs[i] + "</a></div>";
+          }
           for (i = 0; i < answer.files.length; i++) {
-            content += "<div class='listentry'><img src='dropboxdata/folder.png' title='folder' height=16px /> &nbsp; <a target='new' href='#' onclick=\"listdir('" + answer.files[i] + "'); return false\" >" + answer.files[i] + "</a></div>";
+            content += "<div class='listentry'><img src='dropboxdata/delete.png' class='link' title='delete file' height=16px onclick=\"rm('" + currdir + "/" + answer.files[i] + "')\" /> &nbsp; <a target='new' href='" + currdir + "/" + answer.files[i] + "'>" + answer.files[i] + "</a></div>";
           }
           $("#filelist").html(content);
           $("#uploaddir").val(currdir);
-          
-          // now get the file list
-          $.post('dropbox.php', "action=ls&dir=" + currdir + "&type=file", function(data) {
-            var answer = jQuery.parseJSON(data);
-            if (answer.res == 0) {
-              $("#status").html(answer.msg);
-            } else {
-              var content = "";
-              for (i = 0; i < answer.files.length; i++) {
-                content += "<div class='listentry'><img src='dropboxdata/delete.png' class='link' title='delete file' height=16px onclick=\"rm('" + currdir + "/" + answer.files[i] + "')\" /> &nbsp; <a target='new' href='" + currdir + "/" + answer.files[i] + "'>" + answer.files[i] + "</a></div>";
-              }
-              $("#filelist").append(content);
-            }
-          });
         }
       });
     }
@@ -116,11 +106,28 @@
       if (confirm("delete file '" + file + "'?") == true) {
         $.post('dropbox.php', "action=rm&file=" + file, function(data) {
           var answer = jQuery.parseJSON(data);
-          $("#status").html(answer.msg);
+          $("#serverresponse").html(answer.msg);
           listdir(file.substring(0, file.lastIndexOf("/") + 1));
         });
       }
     }   
+
+    // register global event listeners to prevent accidental drag select and drag&drop
+    window.ondragstart = function() { event.preventDefault(); }
+    window.ondragover = function(e) {
+      if (e.target.id != "filename") {
+        e.preventDefault();
+        e.dataTransfer.effectAllowed = "none";
+        e.dataTransfer.dropEffect    = "none";
+      }
+    };
+    window.ondrop = function(e) {
+      if (e.target.id != "filename") {
+        e.preventDefault();
+        e.dataTransfer.effectAllowed = "none";
+        e.dataTransfer.dropEffect    = "none";
+      }
+    };
     
     $(document).ready(function() {
       var parameters = location.search.substring(1).split("&");
@@ -148,7 +155,8 @@
         <input type="password" class="textinput" id="pw" value="password" onfocus="$(this).val('')" onkeyup="if (event.keyCode == 13) { $('#loginbutton').click(); }" /> 
         <img id="loginbutton" class="imglink" src="dropboxdata/login.png" title="login" width="12" onclick="login($('#user').val(), $('#pw').val(), true)" />
       </div>
-      <div id="status"> </div>
+      <div id="loginstatus" class="infobox"> </div>
+      <div id="serverresponse" class="infobox"> </div>
       </center>
     </div>
     
@@ -160,8 +168,8 @@
         <form method="post" action="dropbox.php" enctype="multipart/form-data" id="fileuploadform">
           <input type="hidden" name="action" value="upload" />
           <input type="hidden" name="dir" value="" id="uploaddir" />
-          <input class="link" type="file" style="padding: 20px; width: 80%; vertical-align: middle; text-align: center" name="filename" id="filename" />
-          &nbsp; <img class="link" src="dropboxdata/upload.png" title="upload the selected file" height="16px" onclick="$('#loading').fadeIn(); if ($('#filename').val()) { $('#fileuploadform').submit(); }" />
+          <input class="link padded" type="file" name="filename" id="filename" />
+          <img class="link padded" src="dropboxdata/upload.png" title="upload the selected file" height="16px" onclick="$('#loading').fadeIn(); if ($('#filename').val()) { $('#fileuploadform').submit(); }" />
         </form>
       </div>
     

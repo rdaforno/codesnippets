@@ -3,7 +3,7 @@
 define('ADMINUSER', 'admin');
 define('ADMINPW', 'admin.pw');
 define('GUESTUSER', 'guest');
-define('GUESTPW', 'guest.pw');
-define('GUESTDIR', 'guest');
+define('GUESTPW', '');
+define('GUESTDIR', '.');
 define('MAXFILESIZE', 100000000);
 ?>

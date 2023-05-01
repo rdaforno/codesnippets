@@ -1,7 +1,7 @@
 <?php
 // START SESSION
-session_start(); 
 session_cache_limiter(30);
+session_start();
 
 // INCLUDES
 require_once('dropboxdata/config.php');    // config file
@@ -24,24 +24,52 @@ function checkLogin() {
   }
 }
 
+function checkClient() {
+  if (strpos($_SERVER['REMOTE_ADDR'], "192.168") !== 0) {
+    error("invalid client address: " . $_SERVER['REMOTE_ADDR']);
+  }
+}
+
+function loginAsGuest() {
+  $_SESSION['user'] = GUESTUSER;
+  $_SESSION['home'] = GUESTDIR;
+}
+
+function loginAsAdmin() {
+  $_SESSION['user'] = ADMINUSER;
+  $_SESSION['home'] = ".";
+}
+
+function logout() {
+  unset($_SESSION['user']);
+  unset($_SESSION['home']);
+}
+
+
 // MAIN
 if (isset($_POST['action'])) {
   
+  if (GUESTPW == "") {
+    checkClient();      // allow only local addresses
+  }
+
   // query authentication data
   if ($_POST['action'] == "auth") {
+    if (!isset($_SESSION['user']) && (GUESTPW == "")) {
+      // if no username provided and no password set for guest user, then assume guest user
+      loginAsGuest();
+    }
     checkLogin();
     echo json_encode(array("res" => 1, "user" => $_SESSION['user'], "home" => $_SESSION['home']));
   
   // login
   } else if ($_POST['action'] == "login" && isset($_POST['user']) && isset($_POST['pw'])) {
     if ($_POST['user'] == ADMINUSER && $_POST['pw'] == ADMINPW) {
-      $_SESSION['user'] = ADMINUSER;
-      $_SESSION['home'] = ".";
+      loginAsAdmin();
       echo json_encode(array("res" => 1, "user" => $_SESSION['user'], "home" => $_SESSION['home']));
       
     } else if ($_POST['user'] == GUESTUSER && $_POST['pw'] == GUESTPW) {
-      $_SESSION['user'] = GUESTUSER;
-      $_SESSION['home'] = GUESTDIR;
+      loginAsGuest();
       echo json_encode(array("res" => 1, "user" => $_SESSION['user'], "home" => $_SESSION['home']));
 
     } else {
@@ -50,21 +78,18 @@ if (isset($_POST['action'])) {
     
   // logout
   } else if ($_POST['action'] == "logout") {
-    unset($_SESSION['user']);
-    unset($_SESSION['home']);
+    logout();
     success();
     
   // directory listing
   } else if ($_POST['action'] == "ls") {
     checkLogin();
-    $type = 0;
-    if (!isset($_POST['type']) || $_POST['type'] == 'file') {
-      $type = 1;
-    }
-    $dir = "./";    
+    $dir = "./";
+    $showdirs = true;
     if ($_SESSION['user'] != ADMINUSER) {
       $dir = $_SESSION['home'];
-      
+      $showdirs = false;
+
     } else if (isset($_POST['dir']) && $_POST['dir'] != "") {
       $dir = str_replace("..", "", $_POST['dir']);
     }
@@ -72,29 +97,24 @@ if (isset($_POST['action'])) {
       $dir .= "/";
     }
     if (is_dir($dir)) {
-      $list = [];
+      $filelist = [];
+      $dirlist = [];
       $files = scandir($dir);
       foreach ($files as $file) {
         // skip php and html files
         if (stripos($file, ".html") !== false || stripos($file, ".php") !== false) {
           continue;
         }
-        if ($type) {
-          // it is a file
-          if (is_file($dir . $file)) {
-            $list[] = $file;
-          }
-        } else {
-          // it is a directory
+        if (is_file($dir . $file)) {
+          $filelist[] = $file;
+        } else if ($showdirs) {
           if ($file == "." || $file == 'dropboxdata') {
             continue;
           }
-          if (is_dir($file)) {
-            $list[] = $file;
-          }
+          $dirlist[] = $file;
         }
       }
-      echo json_encode(array("res" => 1, "files" => $list));
+      echo json_encode(array("res" => 1, "files" => $filelist, "dirs" => $dirlist));
       
     } else {
       error("invalid directory '".$dir."'");
@@ -138,18 +158,21 @@ if (isset($_POST['action'])) {
         break;
       case UPLOAD_ERR_NO_FILE:
         $msg = "no file received";
+        break;
       case UPLOAD_ERR_INI_SIZE:
       case UPLOAD_ERR_FORM_SIZE:
         $msg = "file size exceeds limit";
+        break;
       default:
         $msg = "unknown error";
+        break;
     }
     // check file size
     if ($_FILES['filename']['size'] > MAXFILESIZE) {
       $msg = "file size exceeds limit";
       
     // check file name
-    } else if (preg_match("/^[a-zA-Z0-9 _-\.]*$/u", $_FILES['filename']['name']) || strpos($_FILES['filename']['name'], "..") !== false) {
+    } else if (!preg_match("/^[a-zA-Z0-9 _\-\.]*$/u", $_FILES['filename']['name']) || strpos($_FILES['filename']['name'], "..") !== false) {
       $msg = "invalid file name (no special characters allowed)";
     
     // check file type (filter .htm and .php files)

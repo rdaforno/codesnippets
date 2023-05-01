@@ -19,3 +19,5 @@ a:hover { color: #f0d020; text-decoration: underline; }
 .listentry:hover { background-color: #f4f4f4; }
 .link { }
 .link:hover { cursor: pointer; }
+.padded { padding: 20px; vertical-align: middle; text-align: center; }
+.infobox { clear: both; margin: 10px; }
