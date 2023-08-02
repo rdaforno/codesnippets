@@ -8,13 +8,14 @@ import os
 import time
 
 
-search_paths    = ["[my_path_1", "[my_path_2]"]    # a separate catalogue file will be created for each path
+search_paths    = ["my_path_1", "my_path_2"]  # a separate catalogue file will be created for each path
 update_filelist = True
+show_filenames  = True                        # whether to display the name of the current file next with the progress bar
 
 
 class ChecksumCatalogue:
     
-    ignore_folders = ["@eaDir", "#recycle"]   # ignore (sub-)folders with these names
+    ignore_folders = ["@eaDir", "#recycle", ".git"]   # ignore (sub-)folders with these names
     ignore_fileext = []                       # file with these extensions will be skipped
     checksum_tool  = "md5sum"                 # which tool to use to calculate the checksum
     maxage_days    = 100                      # how old an entry may be before updating it
@@ -141,7 +142,11 @@ class ChecksumCatalogue:
                 (timestamp, checksum) = self._catalogue[item]
                 if timestamp < 0:
                     continue
-                sys.stdout.write("\b\b\b\b\b\b\b\b\b\b\b[ {:6.2f}% ]".format(progress * 100 / cat_size))
+                if show_filenames:
+                    filename = os.path.split(item)[1]
+                    sys.stdout.write("\b\r[ {:6.2f}% ] {:50s}".format(progress * 100 / cat_size, filename[:50]))
+                else:
+                    sys.stdout.write("\b\b\b\b\b\b\b\b\b\b\b[ {:6.2f}% ]".format(progress * 100 / cat_size))
                 sys.stdout.flush()
                 if time.time() - timestamp > timedelta:
                     #print("[ {:6.2f}% ] calculating checksum of {} ...".format(progress * 100 / cat_size, item))
@@ -155,6 +160,7 @@ class ChecksumCatalogue:
             sys.stdout.write("\b\b")
             aborted = True
         sys.stdout.write("\n")
+        sys.stdout.flush()
         if self._changed and save:
             self.save()
         return not aborted

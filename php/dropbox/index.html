@@ -94,7 +94,7 @@
             content += "<div class='listentry'><img src='dropboxdata/folder.png' title='folder' height=16px /> &nbsp; <a target='new' href='#' onclick=\"listdir('" + answer.dirs[i] + "'); return false\" >" + answer.dirs[i] + "</a></div>";
           }
           for (i = 0; i < answer.files.length; i++) {
-            content += "<div class='listentry'><img src='dropboxdata/delete.png' class='link' title='delete file' height=16px onclick=\"rm('" + currdir + "/" + answer.files[i] + "')\" /> &nbsp; <a target='new' href='" + currdir + "/" + answer.files[i] + "'>" + answer.files[i] + "</a></div>";
+            content += "<div class='listentry'><img src='dropboxdata/delete.png' class='link' title='delete file' height=16px onclick=\"rm('" + currdir + "/" + answer.files[i] + "')\" /> &nbsp; <a target='new' href='" + currdir + "/" + answer.files[i] + "' download>" + answer.files[i] + "</a></div>";
           }
           $("#filelist").html(content);
           $("#uploaddir").val(currdir);
