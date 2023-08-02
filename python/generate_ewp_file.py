@@ -23,6 +23,7 @@ excludeFiles    = [ ]                                                       # fi
 flattenDirs     = [ "inc" ]                                                 # don't create a tree structure for these folders
 sourceFileTypes = [ ".cpp", ".h", ".c", ".s", "" ]                          # all other file types will be ignored
 includePaths    = [ "$TOOLKIT_DIR$/CMSIS/Core/Include", "$PROJ_DIR$/inc" ]  # project includes
+libPaths        = [ ]                                                       # libraries to include
 preprocDefs     = [ ]                   # global preprocessor defines
 groupExcludes   = { "Debug" : [ ] }     # groups (folders) to exclude from the build config
 fileExcludes    = { "Debug" : [ ] }     # files to exclude from the build config
@@ -32,7 +33,7 @@ mcuConfigs      = { "LPC54102" : {
                         "mcusel" : "LPC54102J512_M4	NXP LPC54102J512_M4",   # MCU description string as given by IAR (field 'OGChipSelectEditMenu' in the .ewp file)
                         "mcuid" : 39,                                       # MCU identification number as given by IAR (field 'CoreVariant' in the .ewp file)
                         "mcudefs" : [ "CPU_LPC54102J512BD64" ],             # required preprocessor defines for this MCU
-                        "linkerfile" : "LPC54102J512_M4.icf",               # linker filename (assuming it is located at the project root)
+                        "linkerfile" : "$PROJ_DIR$/LPC54102J512_M4.icf",    # linker filename
                         "fpuvs" : 4,                                        # if available: FPU version number as given by IAR (field 'FPU2' in the .ewp file)
                         "ignwarning" : "" },                                # warning to suppress
                   }
@@ -286,7 +287,7 @@ def getBuildSettings(config):
             "name" : "BUILDACTION",     # Build Actions
             "archiveVersion" : 1,
             "data" : {
-                "prebuild" : "python $PROJ_DIR$\\tools\pre_build.py",               # pre-build script
+                "prebuild" : "",                                                    # pre-build script
                 "postbuild" : "",
             },
         },
@@ -316,7 +317,7 @@ def getBuildSettings(config):
                     { "name" : "IlinkLogSection", "state" : 0 },
                     { "name" : "IlinkLogVeneer", "state" : 0 },
                     { "name" : "IlinkIcfOverride", "state" : 1 },
-                    { "name" : "IlinkIcfFile", "state" : "$PROJ_DIR$\\" + config['linkerfile'] },
+                    { "name" : "IlinkIcfFile", "state" : config['linkerfile'] },
                     { "name" : "IlinkIcfFileSlave", "state" : "" },
                     { "name" : "IlinkEnableRemarks", "state" : 0 },
                     { "name" : "IlinkSuppressDiags", "state" : "" },
@@ -328,7 +329,7 @@ def getBuildSettings(config):
                     { "name" : "IlinkExtraOptions", "state" : "" },
                     { "name" : "IlinkLowLevelInterfaceSlave", "state" : 1 },
                     { "name" : "IlinkAutoLibEnable", "state" : 1 },                 # automatic runtime library selection: 1 = yes
-                    { "name" : "IlinkAdditionalLibs", "state" : "$PROJ_DIR$/sdk/" + config['mcu'] + "/iar/iar_lib_power.a" },
+                    { "name" : "IlinkAdditionalLibs", "state" : libPaths },
                     { "name" : "IlinkOverrideProgramEntryLabel", "state" : 0 },     # override default program entry: 0 = no
                     { "name" : "IlinkProgramEntryLabelSelect", "state" : 0 },
                     { "name" : "IlinkProgramEntryLabel", "state" : "__iar_program_start" },
