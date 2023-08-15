@@ -134,7 +134,7 @@ class Mail2Http:
             url = "%s?id=%s&from=%s&subject=%s&content=%s" % (serverurl, msg['id'], self.encode(msg['from']), self.encode(msg['subject']), self.encode(msg['content']))
             response = urllib.request.urlopen(url).read().decode()
             print(response)
-            if msg['id'] not in response:
+            if str(msg['id']) not in response:
                 print("failed to forward message %d: %s" % (msg['id'], response))
                 break
             self.lastsent = msg['id']
